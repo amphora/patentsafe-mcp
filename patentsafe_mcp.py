@@ -64,7 +64,7 @@ def list_documents(location: DocumentLocation) -> List[Dict]:
     Raises:
         Exception: If the documents cannot be accessed
     """
-    url = f"{API_BASE_URL}/documents/list/{location}"
+    url = f"{API_BASE_URL}/documents/list/{location.value}"
     headers = {"X-User-Id": USER_ID}
 
     try:
