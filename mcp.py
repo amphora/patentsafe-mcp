@@ -17,13 +17,13 @@ cookies = {
 def read_document_text(document_id: str) -> str:
     """
     Read the text content of a document by its ID.
-    
+
     Args:
         document_id: The ID of the document to read
 
     Returns:
         The text content of the document
-        
+
     Raises:
         Exception: If the document cannot be accessed or doesn't exist
     """
