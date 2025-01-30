@@ -8,7 +8,7 @@ mcp = FastMCP("Patent Safe")
 
 BASE_URL = "http://localhost:8080"
 API_BASE_URL = f"{BASE_URL}/api/mcp"
-USER_ID = "user123"
+USER_ID = "joshuacoles"
 
 
 class DocumentLocation(str, Enum):
