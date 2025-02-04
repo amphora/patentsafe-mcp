@@ -51,36 +51,6 @@ def get_document(document_id: str) -> dict:
 
 
 @mcp.tool()
-def list_documents(location: DocumentLocation) -> List[Dict]:
-    """
-    List documents from a specific location.
-
-    Args:
-        location: The location to list documents from (personal-intray, global-intray, or library)
-
-    Returns:
-        List of documents in the specified location
-
-    Raises:
-        Exception: If the documents cannot be accessed
-    """
-    url = f"{API_BASE_URL}/documents/list/{location.value}"
-    headers = {"X-User-Id": USER_ID}
-
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        return response.json()
-    except requests.RequestException as e:
-        if response.status_code == 401:
-            raise Exception("Unauthorized - invalid user ID")
-        elif response.status_code == 400:
-            raise Exception(f"Invalid location: {location}")
-        else:
-            raise Exception(f"Failed to list documents: {str(e)}")
-
-
-@mcp.tool()
 def search_documents(lucene_query_string: str) -> List[Dict]:
     """
     Search for documents using full text search using a Lucene query string.
@@ -104,7 +74,7 @@ def search_documents(lucene_query_string: str) -> List[Dict]:
     }
 
     try:
-        response = requests.post(url, headers=headers, json=lucene_query_string)
+        response = requests.post(url, headers=headers, data=lucene_query_string)
         response.raise_for_status()
         return response.json()
 
