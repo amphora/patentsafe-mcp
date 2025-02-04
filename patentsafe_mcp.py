@@ -6,9 +6,9 @@ from enum import Enum
 # Create an MCP server
 mcp = FastMCP("Patent Safe")
 
-BASE_URL = "http://localhost:8080"
+BASE_URL = "https://food.morescience.com"
 API_BASE_URL = f"{BASE_URL}/api/mcp"
-USER_ID = "joshuacoles"
+USER_ID = "joshua"
 
 
 class DocumentLocation(str, Enum):
@@ -81,12 +81,15 @@ def list_documents(location: DocumentLocation) -> List[Dict]:
 
 
 @mcp.tool()
-def search_documents(search_text: str) -> List[Dict]:
+def search_documents(lucene_query_string: str) -> List[Dict]:
     """
-    Search for documents using full text search.
+    Search for documents using full text search using a Lucene query string.
 
     Args:
-        search_text: The text to search for
+        query_string: The lucene query string to use for full text search. The simplest query is simply the text you want
+        to search for, for example `red cabbage`. To combine queries join them with `AND` to search for documents
+        containing both terms (for example `red cabbage AND green beans`), or use `OR` to search for documents containing
+        either term (for example `red cabbage OR green beans`).
 
     Returns:
         List of matching documents
@@ -101,7 +104,7 @@ def search_documents(search_text: str) -> List[Dict]:
     }
 
     try:
-        response = requests.post(url, headers=headers, json=search_text)
+        response = requests.post(url, headers=headers, json=lucene_query_string)
         response.raise_for_status()
         return response.json()
 
@@ -119,3 +122,7 @@ def search_documents(search_text: str) -> List[Dict]:
 def get_greeting(name: str) -> str:
     """Get a personalized greeting"""
     return f"Hello, {name}!"
+
+
+if __name__ == "__main__":
+    mcp.run()
