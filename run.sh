@@ -3,4 +3,4 @@
 cd $(dirname $(realpath $0))
 source .venv/bin/activate
 
-./mcp-wrapper -ul logs $HOME/.local/bin/uv run --with 'mcp[cli]' mcp run patentsafe_mcp.py
+./mcp-wrapper -ul logs python3 patentsafe_mcp.py
