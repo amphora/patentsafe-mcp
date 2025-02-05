@@ -1,14 +1,23 @@
 from mcp.server.fastmcp import FastMCP
 import requests
-from typing import List, Dict
+from typing import List, Dict, Set
 from enum import Enum
+from pydantic import BaseModel
+from datetime import datetime, date
+import argparse
 
 # Create an MCP server
 mcp = FastMCP("Patent Safe")
 
-BASE_URL = "https://food.morescience.com"
+# Set up command-line argument parsing
+parser = argparse.ArgumentParser(description="Patent Safe MCP Server")
+parser.add_argument("--base_url", required=True, help="PatentSafe base URL")
+parser.add_argument("--auth_token", required=True, help="Personal authentication token")
+args = parser.parse_args()
+
+BASE_URL = args.base_url
 API_BASE_URL = f"{BASE_URL}/api/mcp"
-USER_ID = "joshua"
+AUTH_TOKEN = args.auth_token
 
 
 class DocumentLocation(str, Enum):
@@ -17,8 +26,21 @@ class DocumentLocation(str, Enum):
     LIBRARY = "library"
 
 
+class PSDocument(BaseModel):
+    """Represents a PatentSafe document with its metadata"""
+    id: str
+    title: str
+    type: str
+    text: str
+    createdDate: datetime
+    modifiedDate: datetime
+    location: str
+    authorId: str
+    metadataValues: Dict[str, Set[str | date | int]] = {}
+
+
 @mcp.tool()
-def get_document(document_id: str) -> dict:
+def get_document(document_id: str) -> PSDocument:
     """
     Get a document by its ID.
 
@@ -32,7 +54,10 @@ def get_document(document_id: str) -> dict:
         Exception: If the document cannot be accessed or doesn't exist
     """
     url = f"{API_BASE_URL}/documents/{document_id}"
-    headers = {"X-User-Id": USER_ID}
+    headers = {
+        "Authorization": f"Bearer {AUTH_TOKEN}",
+        "Content-Type": "application/json",
+    }
 
     try:
         response = requests.get(url, headers=headers)
@@ -51,7 +76,7 @@ def get_document(document_id: str) -> dict:
 
 
 @mcp.tool()
-def search_documents(lucene_query_string: str) -> List[Dict]:
+def search_documents(lucene_query_string: str) -> List[PSDocument]:
     """
     Search for documents using full text search using a Lucene query string.
 
@@ -69,12 +94,12 @@ def search_documents(lucene_query_string: str) -> List[Dict]:
     """
     url = f"{API_BASE_URL}/documents/search"
     headers = {
-        "X-User-Id": USER_ID,
+        "Authorization": f"Bearer {AUTH_TOKEN}",
         "Content-Type": "application/json"
     }
 
     try:
-        response = requests.post(url, headers=headers, data=lucene_query_string)
+        response = requests.post(url, headers=headers, json={"luceneQuery": lucene_query_string})
         response.raise_for_status()
         return response.json()
 
@@ -85,13 +110,6 @@ def search_documents(lucene_query_string: str) -> List[Dict]:
             raise Exception(f"Invalid search query: {str(e)}")
         else:
             raise Exception(f"Failed to search documents: {str(e)}")
-
-
-# Add a dynamic greeting resource
-@mcp.resource("greeting://{name}")
-def get_greeting(name: str) -> str:
-    """Get a personalized greeting"""
-    return f"Hello, {name}!"
 
 
 if __name__ == "__main__":
