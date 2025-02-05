@@ -102,15 +102,19 @@ def search_documents(lucene_query_string: str) -> List[PSDocument]:
             raise Exception(f"Failed to search documents: {str(e)}")
 
 
-if __name__ == "__main__":
+def main():
     # Set up command-line argument parsing
     parser = argparse.ArgumentParser(description="Patent Safe MCP Server")
     parser.add_argument("base_url", help="PatentSafe base URL")
     parser.add_argument("auth_token", help="Personal authentication token")
     args = parser.parse_args()
 
+    global BASE_URL, API_BASE_URL, AUTH_TOKEN
     BASE_URL = args.base_url
     API_BASE_URL = f"{BASE_URL}/api/mcp"
     AUTH_TOKEN = args.auth_token
 
     mcp.run()
+
+if __name__ == "__main__":
+    main()
