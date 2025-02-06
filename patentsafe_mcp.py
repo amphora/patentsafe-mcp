@@ -77,7 +77,6 @@ class PSDocument(BaseModel):
     metadataValues: Dict[str, Set[str | date | int]]
 
 
-@mcp.tool()
 def get_document(document_id: str) -> PSDocument:
     """
     Get a document by its ID.
@@ -112,7 +111,6 @@ def get_document(document_id: str) -> PSDocument:
             raise Exception(f"Failed to fetch document: {str(e)}")
 
 
-@mcp.tool()
 def search_documents(lucene_query_string: str,
                      author_id: Optional[str] = None,
                      submission_date_range_start: Optional[datetime] = None,
