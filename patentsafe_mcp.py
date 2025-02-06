@@ -12,10 +12,10 @@ mcp = FastMCP("Patent Safe")
 
 class ServerInfoResponse(BaseModel):
     """Response from the /connect endpoint containing server information"""
-    server_version: str
-    user_id: str
-    context_header: str
-    metadata_fields: List[str]
+    serverVersion: str
+    userId: str
+    contextHeader: str
+    metadataFields: List[str]
 
 
 def initialize_server(base_url: str, auth_token: str) -> ServerInfoResponse:
@@ -121,6 +121,11 @@ def search_documents(lucene_query_string: str,
         containing both terms (for example `red cabbage AND green beans`), or use `OR` to search for documents containing
         either term (for example `red cabbage OR green beans`).
 
+        Metadata tags can be searched for with the filter `tag-$NAME:...`, for example `tag-rating:5`.
+        The list of available metadata fields is:
+
+            %%METADATA_FIELDS%%
+
     Returns:
         List of matching documents
 
@@ -162,20 +167,22 @@ def main():
     # Initialize connection and gather server metadata
     server_info = initialize_server(args.base_url, args.auth_token)
     print(f"Connected to PatentSafe at {BASE_URL}")
-    print(f"Available metadata fields: {', '.join(sorted(server_info.metadata_fields))}")
+    print(f"Available metadata fields: {', '.join(sorted(server_info.metadataFields))}")
+
+    tool_prefix = f"{args.prefix}_" if args.prefix else ""
 
     # Manually add the tools so we can do name prefixing and add some additional stuff to the descriptions based on the
     # server.
     mcp.add_tool(
         fn=get_document,
-        name=f"{args.tool_prefix}_get_document",
+        name=f"{tool_prefix}get_document",
         description=get_document.__doc__
     )
 
     mcp.add_tool(
         fn=search_documents,
-        name=f"{args.tool_prefix}_search_documents",
-        description=get_document.__doc__
+        name=f"{tool_prefix}search_documents",
+        description=search_documents.__doc__.replace("%%METADATA_FIELDS%%", ", ".join(sorted(server_info.metadataFields)))
     )
 
     mcp.run()
