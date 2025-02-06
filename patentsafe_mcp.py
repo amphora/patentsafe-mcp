@@ -118,11 +118,22 @@ def search_documents(lucene_query_string: str,
     If the search returns too many results, you will receive an error message. Refine your search by using more specific
     query terms or adding filters to reduce the number of results.
 
-    When referencing a document as well as providing its ID please provide a citation style link to the document. Its
-    url is %%BASE_URL%%/ps/experiment/view/AMPH3100012802. For example, if the document ID is 12345, the citation
-    style link would be `[12345](%%BASE_URL%%/ps/experiment/view/AMPH3100012802)`.
+    When mentioning a document you MUST make its ID a Markdown link. You can determine the URL of the document from its ID
+    by using the following pattern: `%%BASE_URL%%/ps/experiment/view/AMPH3100012802`.
+    For example, if the document ID is 12345, the citation style link would be
+    `[12345](%%BASE_URL%%/ps/experiment/view/AMPH3100012802)`.
+
+    If you are using the information from a document you MUST include a citation to the document. You can determine the
+    citation style link for the document from its ID by using the following pattern:
+    `%%BASE_URL%%/ps/experiment/view/AMPH3100012802`.
+    For example, if the document ID is 12345, the citation style link would be
+    `[12345](%%BASE_URL%%/ps/experiment/view/AMPH3100012802)`.
 
     Args:
+        author_id: Optional string containing the unique identifier of the author to filter documents by. If provided, only returns documents authored by this person.
+        submission_date_range_start: Optional datetime specifying the earliest submission date to include in results. Must be in ISO 8601 format (e.g. "2023-01-01T00:00:00Z"). Documents submitted before this date will be excluded.
+        submission_date_range_end: Optional datetime specifying the latest submission date to include in results. Must be in ISO 8601 format (e.g. "2023-12-31T23:59:59Z"). Documents submitted after this date will be excluded.
+
         lucene_query_string: The lucene query string to use for full text search. The simplest query is simply the text you want
         to search for, for example `red cabbage`. To combine queries join them with `AND` to search for documents
         containing both terms (for example `red cabbage AND green beans`), or use `OR` to search for documents containing
@@ -132,10 +143,6 @@ def search_documents(lucene_query_string: str,
         The list of available metadata fields is:
 
             %%METADATA_FIELDS%%
-
-        author_id: The author ID to filter by
-        submission_date_range_start: The start of the date range to filter by in ISO 8601 format
-        submission_date_range_end: The end of the date range to filter by in ISO 8601 format
 
     Returns:
         List of matching documents
