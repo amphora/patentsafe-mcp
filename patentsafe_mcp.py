@@ -170,8 +170,8 @@ def main():
 
     # Initialize connection and gather server metadata
     server_info = initialize_server(args.base_url, args.auth_token)
-    print(f"Connected to PatentSafe at {BASE_URL}")
-    print(f"Available metadata fields: {', '.join(sorted(server_info.metadataFields))}")
+    print(f"Connected to PatentSafe at {BASE_URL}", file=sys.stderr)
+    print(f"Available metadata fields: {', '.join(sorted(server_info.metadataFields))}", file=sys.stderr)
 
     tool_prefix = f"{args.prefix}_" if args.prefix else ""
 
