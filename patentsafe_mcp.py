@@ -11,6 +11,7 @@ import sys
 # Create an MCP server
 mcp = FastMCP("Patent Safe")
 
+
 class ServerInfoResponse(BaseModel):
     """Response from the /connect endpoint containing server information"""
     serverVersion: str
@@ -117,6 +118,10 @@ def search_documents(lucene_query_string: str,
     If the search returns too many results, you will receive an error message. Refine your search by using more specific
     query terms or adding filters to reduce the number of results.
 
+    When referencing a document as well as providing its ID please provide a citation style link to the document. Its
+    url is %%BASE_URL%%/ps/experiment/view/AMPH3100012802. For example, if the document ID is 12345, the citation
+    style link would be `[12345](%%BASE_URL%%/ps/experiment/view/AMPH3100012802)`.
+
     Args:
         lucene_query_string: The lucene query string to use for full text search. The simplest query is simply the text you want
         to search for, for example `red cabbage`. To combine queries join them with `AND` to search for documents
@@ -173,7 +178,8 @@ def main():
     parser.add_argument("base_url", help="PatentSafe base URL")
     parser.add_argument("auth_token", help="Personal authentication token")
     parser.add_argument("--prefix", required=False, help="Prefix for tool names")
-    parser.add_argument("--max-chars", type=int, required=False, default=5_000_00, help="Maximum number of characters to return for a single request")
+    parser.add_argument("--max-chars", type=int, required=False, default=5_000_00,
+                        help="Maximum number of characters to return for a single request")
     args = parser.parse_args()
 
     global CHARACTER_CUTOFF
@@ -197,7 +203,9 @@ def main():
     mcp.add_tool(
         fn=search_documents,
         name=f"{tool_prefix}search_documents",
-        description=search_documents.__doc__.replace("%%METADATA_FIELDS%%", ", ".join(sorted(server_info.metadataFields)))
+        description=search_documents.__doc__ \
+            .replace("%%METADATA_FIELDS%%", ", ".join(sorted(server_info.metadataFields))) \
+            .replace("%%BASE_URL%%", BASE_URL)
     )
 
     mcp.run()
