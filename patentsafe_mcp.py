@@ -18,16 +18,7 @@ class ServerInfoResponse(BaseModel):
     metadata_fields: List[str]
 
 
-class ServerInfo(BaseModel):
-    """Information about the PatentSafe server connection"""
-    status: str
-    base_url: str
-    api_version: str = "1.0"  # Current MCP API version
-    authenticated: bool
-    available_metadata_fields: Set[str] = set()
-
-
-def initialize_server(base_url: str, auth_token: str) -> ServerInfo:
+def initialize_server(base_url: str, auth_token: str) -> ServerInfoResponse:
     """
     Initialize the connection to PatentSafe and gather server metadata.
     This is called at server startup to verify connection and cache server information.
@@ -53,13 +44,7 @@ def initialize_server(base_url: str, auth_token: str) -> ServerInfo:
         )
         response.raise_for_status()
 
-        server_data = ServerInfoResponse.model_validate(response.json())
-        return ServerInfo(
-            status="connected",
-            base_url=BASE_URL,
-            authenticated=True,
-            available_metadata_fields=set(server_data.metadata_fields)
-        )
+        return ServerInfoResponse.model_validate(response.json())
 
     except requests.RequestException as e:
         error_msg = f"Failed to initialize PatentSafe connection: {str(e)}"
@@ -175,8 +160,8 @@ def main():
 
     # Initialize connection and gather server metadata
     server_info = initialize_server(args.base_url, args.auth_token)
-    print(f"Connected to PatentSafe at {server_info.base_url}")
-    print(f"Available metadata fields: {', '.join(sorted(server_info.available_metadata_fields))}")
+    print(f"Connected to PatentSafe at {BASE_URL}")
+    print(f"Available metadata fields: {', '.join(sorted(server_info.metadata_fields))}")
 
     # Update tool names with prefix
     mcp.tool_name_prefix = args.tool_prefix
