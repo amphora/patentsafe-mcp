@@ -11,10 +11,6 @@ import sys
 # Create an MCP server
 mcp = FastMCP("Patent Safe")
 
-# TODO: What should this value be?
-CHARACTER_CUTOFF = 1_000_000
-
-
 class ServerInfoResponse(BaseModel):
     """Response from the /connect endpoint containing server information"""
     serverVersion: str
@@ -177,7 +173,11 @@ def main():
     parser.add_argument("base_url", help="PatentSafe base URL")
     parser.add_argument("auth_token", help="Personal authentication token")
     parser.add_argument("--prefix", required=False, help="Prefix for tool names")
+    parser.add_argument("--max-chars", type=int, required=False, default=5_000_00, help="Maximum number of characters to return for a single request")
     args = parser.parse_args()
+
+    global CHARACTER_CUTOFF
+    CHARACTER_CUTOFF = args.max_chars
 
     # Initialize connection and gather server metadata
     server_info = initialize_server(args.base_url, args.auth_token)
