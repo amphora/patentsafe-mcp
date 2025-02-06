@@ -1,7 +1,6 @@
 from mcp.server.fastmcp import FastMCP
 import requests
-from typing import List, Dict, Set
-from enum import Enum
+from typing import List, Dict, Set, Optional
 from pydantic import BaseModel
 from datetime import datetime, date
 import argparse
@@ -84,7 +83,7 @@ class PSDocument(BaseModel):
     modifiedDate: datetime
     location: str
     authorId: str
-    metadataValues: Dict[str, Set[str | date | int]] = {}
+    metadataValues: Dict[str, Set[str | date | int]]
 
 
 @mcp.tool()
@@ -111,7 +110,6 @@ def get_document(document_id: str) -> PSDocument:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         return response.json()
-
     except requests.RequestException as e:
         if response.status_code == 404:
             raise Exception("Document not found or access denied")
@@ -124,7 +122,10 @@ def get_document(document_id: str) -> PSDocument:
 
 
 @mcp.tool()
-def search_documents(lucene_query_string: str) -> List[PSDocument]:
+def search_documents(lucene_query_string: str,
+                     author_id: Optional[str] = None,
+                     submission_date_range_start: Optional[datetime] = None,
+                     submission_date_range_end: Optional[datetime] = None) -> List[PSDocument]:
     """
     Search for documents using full text search using a Lucene query string.
 
@@ -147,10 +148,14 @@ def search_documents(lucene_query_string: str) -> List[PSDocument]:
     }
 
     try:
-        response = requests.post(url, headers=headers, json={"luceneQuery": lucene_query_string})
+        response = requests.post(url, headers=headers, json={
+            "luceneQuery": lucene_query_string,
+            "authorId": author_id,
+            "submissionDateRangeStart": submission_date_range_start.isoformat() if submission_date_range_start else None,
+            "submissionDateRangeEnd": submission_date_range_end.isoformat() if submission_date_range_end else None,
+        })
         response.raise_for_status()
         return response.json()
-
     except requests.RequestException as e:
         if response.status_code == 401:
             raise Exception("Unauthorized - invalid user ID")
