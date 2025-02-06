@@ -116,7 +116,7 @@ def search_documents(lucene_query_string: str,
     Search for documents using full text search using a Lucene query string.
 
     Args:
-        query_string: The lucene query string to use for full text search. The simplest query is simply the text you want
+        lucene_query_string: The lucene query string to use for full text search. The simplest query is simply the text you want
         to search for, for example `red cabbage`. To combine queries join them with `AND` to search for documents
         containing both terms (for example `red cabbage AND green beans`), or use `OR` to search for documents containing
         either term (for example `red cabbage OR green beans`).
@@ -125,6 +125,10 @@ def search_documents(lucene_query_string: str,
         The list of available metadata fields is:
 
             %%METADATA_FIELDS%%
+
+        author_id: The author ID to filter by
+        submission_date_range_start: The start of the date range to filter by in ISO 8601 format
+        submission_date_range_end: The end of the date range to filter by in ISO 8601 format
 
     Returns:
         List of matching documents
