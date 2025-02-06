@@ -42,6 +42,7 @@ def initialize_server(base_url: str, auth_token: str) -> ServerInfoResponse:
             f"{API_BASE_URL}/connect",
             headers=headers
         )
+
         response.raise_for_status()
 
         return ServerInfoResponse.model_validate(response.json())
@@ -155,7 +156,7 @@ def main():
     parser = argparse.ArgumentParser(description="Patent Safe MCP Server")
     parser.add_argument("base_url", help="PatentSafe base URL")
     parser.add_argument("auth_token", help="Personal authentication token")
-    parser.add_argument("tool_prefix", help="Prefix for tool names")
+    parser.add_argument("--prefix", required=False, help="Prefix for tool names")
     args = parser.parse_args()
 
     # Initialize connection and gather server metadata
