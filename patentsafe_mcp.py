@@ -163,8 +163,20 @@ def main():
     print(f"Connected to PatentSafe at {BASE_URL}")
     print(f"Available metadata fields: {', '.join(sorted(server_info.metadata_fields))}")
 
-    # Update tool names with prefix
-    mcp.tool_name_prefix = args.tool_prefix
+    # Manually add the tools so we can do name prefixing and add some additional stuff to the descriptions based on the
+    # server.
+    mcp.add_tool(
+        fn=get_document,
+        name=f"{args.tool_prefix}_get_document",
+        description=get_document.__doc__
+    )
+
+    mcp.add_tool(
+        fn=search_documents,
+        name=f"{args.tool_prefix}_search_documents",
+        description=get_document.__doc__
+    )
+
     mcp.run()
 
 
