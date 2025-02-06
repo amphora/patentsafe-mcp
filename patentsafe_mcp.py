@@ -11,12 +11,6 @@ import sys
 mcp = FastMCP("Patent Safe")
 
 
-class DocumentLocation(str, Enum):
-    PERSONAL_INTRAY = "personal-intray"
-    GLOBAL_INTRAY = "global-intray"
-    LIBRARY = "library"
-
-
 class ServerInfoResponse(BaseModel):
     """Response from the /connect endpoint containing server information"""
     server_version: str
@@ -59,7 +53,7 @@ def initialize_server(base_url: str, auth_token: str) -> ServerInfo:
             headers=headers
         )
         response.raise_for_status()
-        
+
         server_data = ServerInfoResponse.model_validate(response.json())
         return ServerInfo(
             status="connected",
@@ -75,7 +69,7 @@ def initialize_server(base_url: str, auth_token: str) -> ServerInfo:
                 error_msg = "Authentication failed - invalid token"
             elif e.response.status_code == 404:
                 error_msg = "Invalid PatentSafe URL"
-        
+
         print(f"Error: {error_msg}", file=sys.stderr)
         sys.exit(1)
 
@@ -182,6 +176,7 @@ def main():
     # Update tool names with prefix
     mcp.tool_name_prefix = args.tool_prefix
     mcp.run()
+
 
 if __name__ == "__main__":
     main()
