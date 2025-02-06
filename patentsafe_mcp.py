@@ -1,3 +1,5 @@
+import json
+
 from mcp.server.fastmcp import FastMCP
 import requests
 from typing import List, Dict, Set, Optional
@@ -8,6 +10,9 @@ import sys
 
 # Create an MCP server
 mcp = FastMCP("Patent Safe")
+
+# TODO: What should this value be?
+CHARACTER_CUTOFF = 1_000_000
 
 
 class ServerInfoResponse(BaseModel):
@@ -113,7 +118,10 @@ def search_documents(lucene_query_string: str,
                      submission_date_range_start: Optional[datetime] = None,
                      submission_date_range_end: Optional[datetime] = None) -> List[PSDocument]:
     """
-    Search for documents using full text search using a Lucene query string.
+    Search for documents using full text search using a Lucene query string as well as optionally filtering by metadata.
+
+    If the search returns too many results, you will receive an error message. Refine your search by using more specific
+    query terms or adding filters to reduce the number of results.
 
     Args:
         lucene_query_string: The lucene query string to use for full text search. The simplest query is simply the text you want
@@ -150,7 +158,12 @@ def search_documents(lucene_query_string: str,
             "submissionDateRangeEnd": submission_date_range_end.isoformat() if submission_date_range_end else None,
         })
         response.raise_for_status()
-        return response.json()
+        result = response.json()
+
+        if len(json.dumps(result)) > CHARACTER_CUTOFF:
+            raise Exception("Search returned too many results, please refine your search.")
+
+        return result
     except requests.RequestException as e:
         if response.status_code == 401:
             raise Exception("Unauthorized - invalid user ID")
