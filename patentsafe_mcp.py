@@ -1,6 +1,6 @@
 import json
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP, Context
 import requests
 from typing import List, Dict, Set, Optional
 from pydantic import BaseModel
@@ -74,7 +74,7 @@ class PSDocument(BaseModel):
     metadataValues: Dict[str, Set[str | date | int]]
 
 
-def get_document(document_id: str) -> PSDocument:
+def get_document(document_id: str, ctx: Context) -> PSDocument:
     """
     Get a document by its ID.
 
