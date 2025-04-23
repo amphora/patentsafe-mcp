@@ -33,6 +33,19 @@ You'll need to replace:
 
 We've tested it with Claude, but it should work with any MCP client.
 
+## How it works (and debugging)
+
+The MCP server does raw Lucene queries against the PatentSafe database, which is not something users often do. If you want to do a Lucene query, you can use the following URL:
+
+```
+https://PATENTSAFE_BASE_URL/ps/read/search.html?pq=1
+```
+
+## Limits 
+
+Our initial testing shows that PatentSafe can easily return more documents than the LLM can process. So there's a `--max-chars` flag to limit the number of characters returned, default 500k.
+
+
 ## Support
 
 This is very much a work in progress. It works for us, and will likely work for you, but it's not production ready and is under active development.
