@@ -1,12 +1,21 @@
-import json
+#!/Users/joshuacoles/.local/bin/uv run --script
+# /// script
+# dependencies = [
+#   "pydantic",
+#   "requests",
+#   "mcp",
+# ]
+# ///
 
+import string
 from mcp.server.fastmcp import FastMCP, Context
 import requests
-from typing import List, Dict, Set, Optional
+from typing import List, Dict, Never, Set, Optional, Any
 from pydantic import BaseModel
 from datetime import datetime, date
 import argparse
 import sys
+import random
 
 # Create an MCP server
 mcp = FastMCP("Patent Safe")
@@ -63,6 +72,8 @@ def initialize_server(base_url: str, auth_token: str) -> ServerInfoResponse:
 
 class PSDocument(BaseModel):
     """Represents a PatentSafe document with its metadata"""
+    model_config = {"arbitrary_types_allowed": True}
+    
     id: str
     title: str
     type: str
@@ -71,7 +82,7 @@ class PSDocument(BaseModel):
     modifiedDate: datetime
     location: str
     authorId: str
-    metadataValues: Dict[str, Set[str | date | int]]
+    metadataValues: Optional[Dict[str, Any]] = None
 
 
 def get_document(document_id: str, ctx: Context) -> PSDocument:
@@ -108,15 +119,52 @@ def get_document(document_id: str, ctx: Context) -> PSDocument:
             raise Exception(f"Failed to fetch document: {str(e)}")
 
 
+class SearchDocumentResponse(BaseModel):
+    documents: List[PSDocument]
+    next_page_token: Optional[str]
+    total: int
+
+_remaining_search_results = {}
+
+def return_search_results(remaining_results: List[PSDocument], total: int) -> SearchDocumentResponse:
+    if len(remaining_results) <= SEARCH_DOCUMENT_RESPONSE_SIZE:
+        return SearchDocumentResponse(
+            documents=remaining_results,
+            next_page_token=None,
+            total=total
+        )
+
+    global _remaining_search_results
+
+    next_page_token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+    _remaining_search_results[next_page_token] = {
+        "documents": remaining_results[SEARCH_DOCUMENT_RESPONSE_SIZE:],
+        "total": total
+    }
+
+    return SearchDocumentResponse(
+        documents=remaining_results[:SEARCH_DOCUMENT_RESPONSE_SIZE],
+        next_page_token=next_page_token,
+        total=total
+    )
+
+
+def search_documents_next_page(next_page_token: str) -> SearchDocumentResponse:
+    global _remaining_search_results
+
+    # Get the next page of results
+    result = _remaining_search_results.pop(next_page_token)
+    return return_search_results(result["documents"], result["total"])
+
 def search_documents(lucene_query_string: str,
                      author_id: Optional[str] = None,
                      submission_date_range_start: Optional[datetime] = None,
-                     submission_date_range_end: Optional[datetime] = None) -> List[PSDocument]:
+                     submission_date_range_end: Optional[datetime] = None) -> SearchDocumentResponse:
     """
     Search for documents using full text search using a Lucene query string as well as optionally filtering by metadata.
 
-    If the search returns too many results, you will receive an error message. Refine your search by using more specific
-    query terms or adding filters to reduce the number of results.
+    If the search returns too many results, you will receive a pagination token that you can use to get the next page of results using the
+    `search_documents_next_page` tool. You can continue to call this tool until you have received all the results.
 
     When mentioning a document you MUST make its ID a Markdown link. You can determine the URL of the document from its ID
     by using the following pattern: `%%BASE_URL%%/ps/experiment/view/AMPH3100012802`.
@@ -165,11 +213,7 @@ def search_documents(lucene_query_string: str,
         })
         response.raise_for_status()
         result = response.json()
-
-        if len(json.dumps(result)) > CHARACTER_CUTOFF:
-            raise Exception("Search returned too many results, please refine your search.")
-
-        return result
+        return return_search_results(result, len(result))
     except requests.RequestException as e:
         if response.status_code == 401:
             raise Exception("Unauthorized - invalid user ID")
@@ -189,8 +233,8 @@ def main():
                         help="Maximum number of characters to return for a single request")
     args = parser.parse_args()
 
-    global CHARACTER_CUTOFF
-    CHARACTER_CUTOFF = args.max_chars
+    global SEARCH_DOCUMENT_RESPONSE_SIZE
+    SEARCH_DOCUMENT_RESPONSE_SIZE = 10
 
     # Initialize connection and gather server metadata
     server_info = initialize_server(args.base_url, args.auth_token)
@@ -205,6 +249,12 @@ def main():
         fn=get_document,
         name=f"{tool_prefix}get_document",
         description=get_document.__doc__
+    )
+
+    mcp.add_tool(
+        fn=search_documents_next_page,
+        name=f"{tool_prefix}search_documents_next_page",
+        description=search_documents_next_page.__doc__
     )
 
     mcp.add_tool(
