@@ -12,3 +12,7 @@ logs
 *.log
 *.pdf
 *.png
+
+# IDE and OS files
+.idea
+.DS_Store
