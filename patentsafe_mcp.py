@@ -125,6 +125,7 @@ class SearchDocumentResponse(BaseModel):
     total: int
 
 _remaining_search_results = {}
+SEARCH_DOCUMENT_RESPONSE_SIZE = 10
 
 def return_search_results(remaining_results: List[PSDocument], total: int) -> SearchDocumentResponse:
     if len(remaining_results) <= SEARCH_DOCUMENT_RESPONSE_SIZE:
@@ -151,6 +152,9 @@ def return_search_results(remaining_results: List[PSDocument], total: int) -> Se
 
 def search_documents_next_page(next_page_token: str) -> SearchDocumentResponse:
     global _remaining_search_results
+
+    if next_page_token not in _remaining_search_results:
+        raise Exception("Invalid next page token")
 
     # Get the next page of results
     result = _remaining_search_results.pop(next_page_token)
@@ -230,9 +234,6 @@ def main():
     parser.add_argument("auth_token", help="Personal authentication token")
     parser.add_argument("--prefix", required=False, help="Prefix for tool names")
     args = parser.parse_args()
-
-    global SEARCH_DOCUMENT_RESPONSE_SIZE
-    SEARCH_DOCUMENT_RESPONSE_SIZE = 10
 
     # Initialize connection and gather server metadata
     server_info = initialize_server(args.base_url, args.auth_token)
