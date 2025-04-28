@@ -229,8 +229,6 @@ def main():
     parser.add_argument("base_url", help="PatentSafe base URL")
     parser.add_argument("auth_token", help="Personal authentication token")
     parser.add_argument("--prefix", required=False, help="Prefix for tool names")
-    parser.add_argument("--max-chars", type=int, required=False, default=5_000_00,
-                        help="Maximum number of characters to return for a single request")
     args = parser.parse_args()
 
     global SEARCH_DOCUMENT_RESPONSE_SIZE
